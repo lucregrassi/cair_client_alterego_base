@@ -3,11 +3,11 @@
 import rospy
 import os
 import random
-from cairclient_base.srv import GestureService, GestureServiceResponse
+from cairclient_alterego_base.srv import GestureService, GestureServiceResponse
 import rospkg
 
 rp = rospkg.RosPack()
-package_path = rp.get_path('cairclient_base')
+package_path = rp.get_path('cairclient_alterego_base')
 folder_path = package_path + "/bag" 
 
 def handle_gesture_service(req):
