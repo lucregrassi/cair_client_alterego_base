@@ -6,6 +6,9 @@ import random
 from cairclient_alterego_base.srv import GestureService, GestureServiceResponse
 import rospkg
 import time
+import yaml
+from rosbag.bag import Bag
+
 
 rp = rospkg.RosPack()
 package_path = rp.get_path('cairclient_alterego_base')
@@ -24,6 +27,8 @@ def handle_gesture_service(req):
 		start = time.time()
 		os.system("rosbag play -s {} -u {} {}".format(offset, duration, filename))
 		end = time.time()
+		info_dict = yaml.load(Bag(filename, 'r')._get_yaml_info())
+		print(info_dict["duration"])
 		elapsed_time = end-start-0.5
 		if(elapsed_time < duration):
 			offset = 0.0
@@ -36,7 +41,7 @@ def handle_gesture_service(req):
 	return offset
 
 def gesture_service_server():
-	rospy.init_node('gesture_service_server', anonymous=True)
+	rospy.init_node('gesture_service_server', anonymous=False)
 	service = rospy.Service('gesture_service', GestureService, handle_gesture_service)
 	rospy.loginfo("Gesture service server is ready.")
 	rospy.spin()
