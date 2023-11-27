@@ -7,6 +7,7 @@ from cairclient_alterego_base.srv import GestureService, GestureServiceResponse
 import rospkg
 import time
 import yaml
+import math
 from rosbag.bag import Bag
 
 
@@ -22,19 +23,21 @@ def handle_gesture_service(req):
 	
 	rospy.loginfo("Received service request: %s, %f, %f", filename, offset, duration)
 	
-	elapsed_time = 0
-	while(elapsed_time < duration):
-		start = time.time()
+	info_dict = yaml.load(Bag(filename, 'r')._get_yaml_info())
+	rosbag_duration = info_dict["duration"]
+	
+	# compute how many times should i reproduce the rosbag
+	n_loops = math.ceil((offset + duration)/rosbag_duration)
+	if n_loops == 1:
 		os.system("rosbag play -s {} -u {} {}".format(offset, duration, filename))
-		end = time.time()
-		info_dict = yaml.load(Bag(filename, 'r')._get_yaml_info())
-		print(info_dict["duration"])
-		elapsed_time = end-start-0.5
-		if(elapsed_time < duration):
-			offset = 0.0
-			duration = duration - elapsed_time
-		else:
-			offset = elapsed_time	
+		offset = offset + duration
+	else:
+		for i in range(0, n_loops-1):
+			os.system("rosbag play {}".format(filename))
+		offset = duration - (rosbag_duration-offset) - rosbag_duration*(n_loops-2)
+		duration = offset
+		os.system("rosbag play -s {} -u {} {}".format(offset, duration, filename))
+		
 
 	rospy.loginfo("Server processing complete: new offset %f", offset)
     # The server returns a boolean
