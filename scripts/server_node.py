@@ -16,17 +16,17 @@ def handle_gesture_service(req):
     filename = req.filename
     filename = os.path.join(folder_path, req.filename)
     offset = req.offset
-    gesture_duration = req.gesture_duration
+    audio_duration = req.audio_duration
 
-    rospy.loginfo("Received service request: %s, %f, %f", filename, offset, gesture_duration)
+    rospy.loginfo("Received service request: %s, %f, %f", filename, offset, audio_duration)
 
     info_dict = yaml.load(Bag(filename, 'r')._get_yaml_info())
     rosbag_duration = info_dict["duration"]
 
-    remaining_time = gesture_duration
+    remaining_time = audio_duration
     while remaining_time > 0:
         if remaining_time < (rosbag_duration - offset):
-            play_time = remaining_time - offset
+            play_time = remaining_time
         else:
             play_time = rosbag_duration - offset
         os.system("rosbag play -s {} -u {} {}".format(offset, play_time, filename))
